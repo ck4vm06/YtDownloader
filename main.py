@@ -116,6 +116,7 @@ if __name__ == "__main__":
     app.config(background=bg)
     app.attributes('-alpha', 0.87)
     app.title('YtDownload')
+    app.iconbitmap('icon.ico')
     # 網址
     url_en_lb = tk.Label(app, text='Youtube URL', bg=bg, fg='white')
     url_en_lb.grid(column=0, row=0, padx=10, pady=5)
