@@ -1,4 +1,5 @@
 import os
+import sys
 import threading
 import tkinter as tk
 from tkinter import filedialog
@@ -107,7 +108,15 @@ def stop_download():
     if downloader:
         downloader.stop_set()
         del downloader
-
+def resource_path(relative_path):
+    # PyInstaller创建临时文件夹并将文件放在其中
+    try:
+        # 在打包的环境中
+        base_path = sys._MEIPASS
+    except Exception:
+        # 在开发环境中
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
 
 if __name__ == "__main__":
     app = tk.Tk()
@@ -116,7 +125,8 @@ if __name__ == "__main__":
     app.config(background=bg)
     app.attributes('-alpha', 0.87)
     app.title('YtDownload')
-    app.iconbitmap('icon.ico')
+    icon_path = resource_path('icon.ico')
+    app.iconbitmap(icon_path)
     # 網址
     url_en_lb = tk.Label(app, text='Youtube URL', bg=bg, fg='white')
     url_en_lb.grid(column=0, row=0, padx=10, pady=5)
