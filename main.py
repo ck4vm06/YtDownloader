@@ -55,13 +55,13 @@ def path_check():
         save_path = path
         return True
 def ext_check():
-    ext = combo_box.get().split()
+    ext = combo_box.get().lower().split()
     global file_ext
     if ext[1] == 'mp3':
-        file_ext = combo_box.get()
+        file_ext = combo_box.get().lower()
         return True
     elif ext[1] == 'mp4':
-        file_ext = combo_box.get()
+        file_ext = combo_box.get().lower()
         return True
     else:
         information_update('Choose mp3 or mp4')
