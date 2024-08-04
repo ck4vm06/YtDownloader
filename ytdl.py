@@ -1,3 +1,5 @@
+import time
+
 from moviepy.editor import VideoFileClip, AudioFileClip
 from pytubefix import Playlist, YouTube
 from proglog import ProgressBarLogger
@@ -46,9 +48,16 @@ class YtDownloader():
             self.info_pack['title'] = yt.title
             self.info_pack['counter'] = f'({count}/{playlist_quantity})'
             if 'mp3' in self.file_ext:
-                print(self.get_mp3(yt))
+                download_state = self.get_mp3(yt)
             elif 'mp4' in self.file_ext:
-                print(self.get_mp4(yt))
+                download_state = self.get_mp4(yt)
+            else:
+                download_state = 'Error >>> extension not supported'
+            if download_state:
+                self.information_update(download_state)
+                time.sleep(2)
+
+
         if not self.stop_event.is_set():
             self.information_update('Download Completed!')
         self.download_finish()
@@ -65,9 +74,11 @@ class YtDownloader():
 
     def get_mp3(self, yt):
         try:
-            abr = self.file_ext[0]
+            abr = self.file_ext[0] if self.file_ext[0] else '160kbps'
             audio_file = self.__get_audio(yt, abr)
-            if audio_file.startswith('Error') or audio_file == None:
+            if audio_file == None:
+                return 'Error >>> audio_file is None'
+            elif audio_file.startswith('Error'):
                 return audio_file
 
             # to mp3
@@ -76,21 +87,21 @@ class YtDownloader():
             self.information_updater()#<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
             out_file_name = os.path.join(self.save_path, f'{yt.title}.mp3')
-            audio_clip = AudioFileClip(audio_file)
-            audio_clip.write_audiofile(out_file_name,
-                                       bitrate='160k',
-                                       logger=MoviepyBarLogger(self))
-            os.remove(audio_file)
-            return 'Finish'
+            file_name, file_ext = os.path.splitext(audio_file)
+            if file_ext == '.mp3':
+                os.rename(audio_file, out_file_name)
+            else:
+                audio_clip = AudioFileClip(audio_file)
+                audio_clip.write_audiofile(out_file_name,
+                                           bitrate=abr.replace('bps', ''),
+                                           logger=MoviepyBarLogger(self))
+                os.remove(audio_file)
+            return 0
         except StopException:
             print('stop test')
             self.stop()
         except Exception as e:
             return f'Error >>> {e}'
-        try:
-            os.remove(audio_file)
-        except Exception as e:
-            print(e)
 
     def __get_audio(self, yt, abr):
 
@@ -101,7 +112,7 @@ class YtDownloader():
         try:
             #find stream
             stream = yt.streams.filter(adaptive=True, type='audio',
-                                           abr=abr).first()
+                                       abr=abr).order_by('abr').desc().first()
             if not stream:
                 stream = yt.streams.filter(adaptive=True, type='audio',
                                            ).order_by('abr').desc().first()
@@ -125,12 +136,17 @@ class YtDownloader():
 
             abr = '160kbps'
             audio_file = self.__get_audio(yt, abr)
-            if audio_file.startswith('Error') or audio_file == None:
+            if audio_file == None:
+                return 'Error >>> audio_file is None'
+            elif audio_file.startswith('Error'):
                 return audio_file
 
             video_file = self.__get_video(yt, res, fps)
-            if video_file.startswith('Error') or audio_file == None:
+            if video_file == None:
+                return 'Error >>> video_file is None'
+            elif video_file.startswith('Error') or video_file == None:
                 return video_file
+
             # pack_speed = self.file_ext[2] if len(self.file_ext) > 2 else None # 確認使否指定壓縮速率
 
             self.info_pack['state'] = 'Reading'
@@ -151,18 +167,13 @@ class YtDownloader():
                                         )
             os.remove(audio_file)
             os.remove(video_file)
-            return 'Finish'
+            return 0
         except StopException:
             print('stop test')
             self.stop()
         except Exception as e:
             return f'Error >>> {e}'
 
-        try:
-            os.remove(audio_file)
-            os.remove(video_file)
-        except Exception as e:
-            print(e)
 
 
     def __get_video(self, yt, res, fps):
@@ -201,7 +212,10 @@ class MoviepyBarLogger(ProgressBarLogger):
     def bars_callback(self, bar, attr, value, old_value=None):
         self.outer_instance.progress_bar_update(int((value / self.bars[bar]['total']) * 100))
         if bar == 't' and value == 0:
-            self.outer_instance.info_pack['state'] = 'Converting'
+            self.outer_instance.info_pack['state'] = 'Converting Video'
+            self.outer_instance.information_updater()
+        elif bar == 'chunk' and value == 0:
+            self.outer_instance.info_pack['state'] = 'Converting Audio'
             self.outer_instance.information_updater()
         if self.outer_instance.stop_event.is_set():
             raise StopException("Download stopped by user.")
