@@ -45,8 +45,11 @@ class YtDownloader():
                 self.stop()
                 return
             yt = YouTube(video_url, on_progress_callback=self.register_on_progress_callback)
+
             self.info_pack['title'] = yt.title
             self.info_pack['counter'] = f'({count}/{playlist_quantity})'
+            self.information_updater()
+
             if 'mp3' in self.file_ext:
                 download_state = self.get_mp3(yt)
             elif 'mp4' in self.file_ext:
@@ -74,6 +77,9 @@ class YtDownloader():
 
     def get_mp3(self, yt):
         try:
+            if os.path.exists(f'{os.path.join(self.save_path, yt.title)}.mp3'):
+                return f'{yt.title}\nalready exist'
+
             abr = self.file_ext[0] if self.file_ext[0] else '160kbps'
             audio_file = self.__get_audio(yt, abr)
             if audio_file == None:
@@ -130,6 +136,9 @@ class YtDownloader():
 
     def get_mp4(self, yt):
         try:
+            if os.path.exists(f'{os.path.join(self.save_path, yt.title)}.mp4'):
+                return f'{yt.title}\nalready exist'
+
             quality = self.file_ext[0].split('p')
             res = None if (quality[0] == '') else quality[0]+'p'
             fps = None if (quality[1] == '') else quality[1]
