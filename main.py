@@ -2,8 +2,10 @@ import os
 import sys
 import threading
 import tkinter as tk
+import webbrowser
 from tkinter import filedialog
 from tkinter import ttk
+import requests
 import ytdl
 from pytubefix import Playlist, YouTube
 
@@ -14,6 +16,25 @@ Yt_URL = 'unknown'
 save_path = 'unknown'
 file_ext = 'unknown' # mp3 mp4
 download_type = 'unknown' # 'list' or 'solo'
+version = 'v1.5'
+
+def version_check():
+    repos_url = 'https://api.github.com/repos/ck4vm06/YtDownloader/releases/latest'
+    download_url = f'https://github.com/ck4vm06/YtDownloader/releases/latest/download/YtDownloader{version[1:]}.exe'
+    try:
+        response = requests.get(repos_url)
+        if response.status_code == 200:
+            release_info = response.json()
+            if version != release_info['tag_name']:
+                message_win = tk.Tk()
+                message_win.withdraw()  # 隐藏主窗口
+                is_update = tk.messagebox.askyesno("Update Available",
+                                                   f"Do you want to download version {release_info['tag_name']} update?")
+                if is_update:
+                    webbrowser.open_new(download_url)
+                message_win.destroy()
+    except Exception as e:
+        print(e)
 
 def progress_bar_update(progress: int):
     progress_bar['value'] = progress
@@ -124,7 +145,7 @@ if __name__ == "__main__":
     app.resizable(width=False, height=True)
     app.config(background=bg)
     app.attributes('-alpha', 0.87)
-    app.title('YtDownload')
+    app.title(f'YtDownload {version}')
     icon_path = resource_path('icon.ico')
     app.iconbitmap(icon_path)
     # 網址
@@ -176,4 +197,5 @@ if __name__ == "__main__":
 
     # process = (tk.Label(group, text='0/0', bg=bg, fg='white'))
     # process.pack(side='right')
+    version_check()
     app.mainloop()
