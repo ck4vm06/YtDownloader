@@ -2,7 +2,6 @@ __pycache__
 .idea
 build
 dist
-setup.py
 test.py
 test2.py
 test3.py

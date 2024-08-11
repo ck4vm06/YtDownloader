@@ -80,7 +80,7 @@ class YtDownloader():
             if os.path.exists(f'{os.path.join(self.save_path, yt.title)}.mp3'):
                 return f'{yt.title}\nalready exist'
 
-            abr = self.file_ext[0] if self.file_ext[0] else '160kbps'
+            abr = self.file_ext[0] if 'kbps'in self.file_ext[0] else '160kbps'
             audio_file = self.__get_audio(yt, abr)
             if audio_file == None:
                 return 'Error >>> audio_file is None'
