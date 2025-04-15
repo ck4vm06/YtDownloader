@@ -16,7 +16,7 @@ Yt_URL = 'unknown'
 save_path = 'unknown'
 file_ext = 'unknown' # mp3 mp4
 download_type = 'unknown' # 'list' or 'solo'
-version = 'v1.5'
+version = 'v1.7'
 
 def version_check():
     repos_url = 'https://api.github.com/repos/ck4vm06/YtDownloader/releases/latest'
