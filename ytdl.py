@@ -1,4 +1,5 @@
 import time
+import re
 
 from moviepy.editor import VideoFileClip, AudioFileClip
 from pytubefix import Playlist, YouTube
@@ -6,6 +7,11 @@ from proglog import ProgressBarLogger
 import multiprocessing
 import os
 import threading
+
+def sanitize_filename(name):
+    # 移除 Windows 不允許的字元: \ / : * ? " < > |
+    name = re.sub(r'[\\/:*?"<>|]', '_', name)
+    return name
 
 class YtDownloader():
     def __init__(self, Yt_url, save_path, file_ext, information_update,progress_bar_update , download_finish):
@@ -77,8 +83,9 @@ class YtDownloader():
 
     def get_mp3(self, yt):
         try:
-            if os.path.exists(f'{os.path.join(self.save_path, yt.title)}.mp3'):
-                return f'{yt.title}\nalready exist'
+            name = rf"{sanitize_filename(yt.title)}.mp3"
+            if os.path.exists(os.path.join(self.save_path, name)):
+                return f'{name}\nalready exist'
 
             abr = self.file_ext[0] if 'kbps'in self.file_ext[0] else '160kbps'
             audio_file = self.__get_audio(yt, abr)
@@ -92,15 +99,20 @@ class YtDownloader():
             self.info_pack['type'] = 'mp3'
             self.information_updater()#<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-            out_file_name = os.path.join(self.save_path, f'{yt.title}.mp3')
+            out_file_dir = os.path.join(self.save_path, name)
             file_name, file_ext = os.path.splitext(audio_file)
             if file_ext == '.mp3':
-                os.rename(audio_file, out_file_name)
+                os.rename(audio_file, out_file_dir)
             else:
-                audio_clip = AudioFileClip(audio_file)
-                audio_clip.write_audiofile(out_file_name,
+                final_audio = AudioFileClip(audio_file)
+                final_audio.write_audiofile(out_file_dir,
                                            bitrate=abr.replace('bps', ''),
                                            logger=MoviepyBarLogger(self))
+                # 正確釋放資源
+                final_audio.close()
+
+                # 給一點時間讓系統釋放檔案
+                time.sleep(0.5)
                 os.remove(audio_file)
             return 0
         except StopException:
@@ -124,7 +136,7 @@ class YtDownloader():
                                            ).order_by('abr').desc().first()
             print(stream)
             audio_file = stream.download(output_path=self.save_path,
-                                       filename=f'{stream.title}(ProcessingAudio).{stream.subtype}')
+                                       filename=f'{stream.title}({abr})(ProcessingAudio).{stream.subtype}')
             return audio_file
         except StopException:
             print('stop test')
@@ -136,8 +148,9 @@ class YtDownloader():
 
     def get_mp4(self, yt):
         try:
-            if os.path.exists(f'{os.path.join(self.save_path, yt.title)}.mp4'):
-                return f'{yt.title}\nalready exist'
+            name = rf"{sanitize_filename(yt.title)}.mp4"
+            if os.path.exists(os.path.join(self.save_path, name)):
+                return f'{name}\nalready exist'
 
             quality = self.file_ext[0].split('p')
             res = None if (quality[0] == '') else quality[0]+'p'
@@ -149,12 +162,16 @@ class YtDownloader():
                 return 'Error >>> audio_file is None'
             elif audio_file.startswith('Error'):
                 return audio_file
+            else :
+                print(f"{audio_file}__ok")
 
             video_file = self.__get_video(yt, res, fps)
             if video_file == None:
                 return 'Error >>> video_file is None'
             elif video_file.startswith('Error') or video_file == None:
                 return video_file
+            else :
+                print(f"{video_file}__ok")
 
             # pack_speed = self.file_ext[2] if len(self.file_ext) > 2 else None # 確認使否指定壓縮速率
 
@@ -162,11 +179,13 @@ class YtDownloader():
             self.info_pack['type'] = 'mp4'
             self.information_updater()#<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-            out_file_name = os.path.join(self.save_path, f'{yt.title}.mp4')
+
+
+            out_file_dir = os.path.join(self.save_path, name)
             audio = AudioFileClip(audio_file)
             video = VideoFileClip(video_file)
-            final_video = video.set_audio(audio)
-            final_video.write_videofile(out_file_name,
+            final_video = video.with_audio(audio)
+            final_video.write_videofile(out_file_dir,
                                         codec="libx264",
                                         audio_codec="aac",
                                         audio_bitrate='160k',
@@ -174,6 +193,13 @@ class YtDownloader():
                                         logger=MoviepyBarLogger(self),
                                         threads=multiprocessing.cpu_count()
                                         )
+            # 正確釋放資源
+            audio.close()
+            video.close()
+            final_video.close()
+
+            # 給一點時間讓系統釋放檔案
+            time.sleep(1)
             os.remove(audio_file)
             os.remove(video_file)
             return 0
@@ -181,6 +207,7 @@ class YtDownloader():
             print('stop test')
             self.stop()
         except Exception as e:
+            print(e)
             return f'Error >>> {e}'
 
 
@@ -204,7 +231,7 @@ class YtDownloader():
                 if stream:
                     print(stream)
                     video_file = stream.download(output_path=self.save_path,
-                                               filename=f'{stream.title}(ProcessingVideo).{stream.subtype}')
+                                               filename=f'{stream.title}({res})(ProcessingVideo).{stream.subtype}')
                     break
             return video_file
         except StopException:

@@ -27,7 +27,7 @@ def version_check():
             release_info = response.json()
             if version != release_info['tag_name']:
                 message_win = tk.Tk()
-                message_win.withdraw()  # 隐藏主窗口
+                message_win.withdraw()  # 隱藏主視窗
                 is_update = tk.messagebox.askyesno("Update Available",
                                                    f"Do you want to download version {release_info['tag_name']} update?")
                 if is_update:
@@ -73,7 +73,7 @@ def path_check():
         return False
     else:
         global save_path
-        save_path = path
+        save_path = os.path.normpath(path)
         return True
 def ext_check():
     ext = combo_box.get().lower().split()
@@ -130,12 +130,9 @@ def stop_download():
         downloader.stop_set()
         del downloader
 def resource_path(relative_path):
-    # PyInstaller创建临时文件夹并将文件放在其中
     try:
-        # 在打包的环境中
         base_path = sys._MEIPASS
     except Exception:
-        # 在开发环境中
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
