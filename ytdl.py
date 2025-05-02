@@ -8,10 +8,12 @@ import multiprocessing
 import os
 import threading
 
-def sanitize_filename(name):
-    # 移除 Windows 不允許的字元: \ / : * ? " < > |
-    name = re.sub(r'[\\/:*?"<>|]', '_', name)
-    return name
+# def sanitize_filename(name):
+#     # 移除 Windows 不允許的字元: \ / : * ? " < > |
+#     print(name)
+#     name = re.sub(r'[\\/:*?"<>|]', '_', name)
+#     print(name)
+#     return name
 
 class YtDownloader():
     def __init__(self, Yt_url, save_path, file_ext, information_update,progress_bar_update , download_finish):
@@ -83,7 +85,7 @@ class YtDownloader():
 
     def get_mp3(self, yt):
         try:
-            name = rf"{sanitize_filename(yt.title)}.mp3"
+            name = rf"{yt.title}.mp3"
             if os.path.exists(os.path.join(self.save_path, name)):
                 return f'{name}\nalready exist'
 
@@ -126,7 +128,7 @@ class YtDownloader():
         self.info_pack['state'] = 'Downloading'
         self.info_pack['type'] = 'audio resource'
         self.information_updater()#<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
+        print(abr)
         try:
             #find stream
             stream = yt.streams.filter(adaptive=True, type='audio',
@@ -148,7 +150,7 @@ class YtDownloader():
 
     def get_mp4(self, yt):
         try:
-            name = rf"{sanitize_filename(yt.title)}.mp4"
+            name = rf"{yt.title}.mp4"
             if os.path.exists(os.path.join(self.save_path, name)):
                 return f'{name}\nalready exist'
 

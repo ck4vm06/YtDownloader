@@ -16,7 +16,7 @@ Yt_URL = 'unknown'
 save_path = 'unknown'
 file_ext = 'unknown' # mp3 mp4
 download_type = 'unknown' # 'list' or 'solo'
-version = 'v1.7'
+version = 'v1.8'
 
 def version_check():
     repos_url = 'https://api.github.com/repos/ck4vm06/YtDownloader/releases/latest'
@@ -143,7 +143,7 @@ if __name__ == "__main__":
     app.config(background=bg)
     app.attributes('-alpha', 0.87)
     app.title(f'YtDownload {version}')
-    icon_path = resource_path('icon.ico')
+    icon_path = resource_path(r'assets/icon.ico')
     app.iconbitmap(icon_path)
     # 網址
     url_en_lb = tk.Label(app, text='Youtube URL', bg=bg, fg='white')
