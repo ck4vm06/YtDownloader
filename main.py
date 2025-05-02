@@ -16,7 +16,7 @@ Yt_URL = 'unknown'
 save_path = 'unknown'
 file_ext = 'unknown' # mp3 mp4
 download_type = 'unknown' # 'list' or 'solo'
-version = 'v1.8'
+version = 'v1.9'
 
 def version_check():
     repos_url = 'https://api.github.com/repos/ck4vm06/YtDownloader/releases/latest'
@@ -25,7 +25,9 @@ def version_check():
         response = requests.get(repos_url)
         if response.status_code == 200:
             release_info = response.json()
-            if version != release_info['tag_name']:
+            release_version_count = release_info['tag_name'][1:].replace(".", "")
+            version_count = version[1:].replace(".", "")
+            if version_count < release_version_count:
                 message_win = tk.Tk()
                 message_win.withdraw()  # 隱藏主視窗
                 is_update = tk.messagebox.askyesno("Update Available",
