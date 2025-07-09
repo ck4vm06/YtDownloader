@@ -12,5 +12,5 @@ a simple youtube downloader
 ## Example
 Video: `{Resolution}p{fps}` `{space}` `mp4`
 ###### 如果沒找到符合的Resolution會依序降低尋找，如果沒找到符合的fps會使用影片最高fps
-Audio: `{bit rate}` `{space}` `mp3`
+Audio: `{bit rate}kbps` `{space}` `mp3`
 ###### 如果沒找到符合的bit rate會依序降低尋找
