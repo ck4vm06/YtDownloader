@@ -1,6 +1,5 @@
 # Youtube Downloader
 a simple youtube downloader  
-I choose Adaptive Stream download and AV1 priority for best quality
 
 # Download
 1. [Download page](https://github.com/ck4vm06/YtDownloader/releases/latest)
